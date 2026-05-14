@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Volume2, VolumeX, User, Edit2, Check } from 'lucide-react';
+import { Settings, Volume2, VolumeX } from 'lucide-react';
 import { useApp } from '../hooks/AppContext';
 
 const HomePage: React.FC = () => {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../hooks/SocketContext';
 import { Users, Copy, Check, Play } from 'lucide-react';
-import { ClientPlayer } from '../../../server/src/game/types'; // We'll redefine this locally later, for now we can just use any or redefine
+
 
 interface LobbyPlayer {
   socketId: string;

@@ -1,10 +1,11 @@
+/// <reference types="vite/client" />
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSocket } from '../hooks/SocketContext';
 import { useApp } from '../hooks/AppContext';
 import Card from '../components/Card';
 import { Card as CardType, ClientRoomState } from '../../../server/src/game/types';
-import { LogOut, Settings as SettingsIcon, Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { LogOut, Settings as SettingsIcon, Volume2, VolumeX } from 'lucide-react';
 
 interface GameState {
   room: ClientRoomState;
