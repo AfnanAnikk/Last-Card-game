@@ -261,25 +261,13 @@ const GamePage: React.FC = () => {
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       
       {/* Top Left - Draw Pile & Quit */}
-      <div style={{ position: 'absolute', top: '1rem', left: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10 }}>
-        <button 
-          onClick={() => navigate('/')}
-          style={{ background: 'rgba(239, 68, 68, 0.8)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          <LogOut size={16} /> Quit Game
-        </button>
-      </div>
-      <div style={{position: 'absolute', top: '15rem', left: '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: 'rotate(45deg)'}}>
-        <div onClick={handleDrawCard} style={{cursor: isMyTurn() ? 'pointer' : 'default', transition: 'transform 0.2s', transform: isMyTurn() ? 'scale(1.05)' : 'none'}}>
-          <div style={{transform: 'scale(0.5)', transformOrigin: 'top left'}}>
-            <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
-          </div>
-
-          {isMyTurn() && (
-            <div style={{textAlign: 'center', color: '#fa3715', fontWeight: 'bold', marginTop: '0.5rem', marginRight: '1.5rem', textShadow: '1px 1px 2px black'}}>
-              Draw
+      <div style={{ position: 'absolute', top: '15rem', left: '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: 'rotate(45deg)' }}>
+        <div onClick={handleDrawCard} style={{ cursor: isMyTurn() ? 'pointer' : 'default' }}>
+          <div style={{ animation: isMyTurn() ? 'drawPulse 1s infinite ease-in-out' : 'none', transformOrigin: 'center center', display: 'inline-block' }}>
+            <div style={{ transform: 'scale(0.5)', transformOrigin: 'top left', display: 'inline-block', border: isMyTurn() ? '3px solid orange' : 'none', borderRadius: '0.7rem', boxShadow: isMyTurn() ? '0 0 12px orange, 0 0 25px rgba(255, 165, 0, 0.8)' : 'none' }}>
+              <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -374,13 +362,13 @@ const GamePage: React.FC = () => {
               
               <div style={{ position: 'relative', width: '0px', height: '0px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', transform: `rotate(${baseRotation}deg)`, display: 'flex', justifyContent: 'center', top: '10px' }}>
-                  <div style={{ position: 'relative', width: `${40 + (player.cardCount * 10)}px`, height: '80px', display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ position: 'relative', width: `${20 + (player.cardCount * 10)}px`, height: '50px', display: 'flex', justifyContent: 'center' }}>
                     {Array.from({ length: Math.min(player.cardCount, 15) }).map((_, i) => {
                       const angle = oppStartAngle + (i * oppCardSpacing);
                       const yOff = oppFanRadius - Math.sqrt(Math.pow(oppFanRadius, 2) - Math.pow((i - player.cardCount / 2) * 10, 2));
                       return (
                         <div key={i} style={{ position: 'absolute', transformOrigin: 'bottom center', transform: `translateX(${(i - player.cardCount / 2) * 10}px) translateY(${isNaN(yOff) ? 0 : Math.min(yOff, 20)}px) rotate(${angle}deg)` }}>
-                          <div style={{ width: '40px', height: '60px', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden' }}>
+                          <div style={{ transform: 'scale(0.6)', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden' }}>
                             <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
                           </div>
                         </div>
@@ -441,7 +429,7 @@ const GamePage: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: '-50px', left: '50%', transform: 'translateX(-50%)', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: '250px', width: '100%', zIndex: 10 }}>
+      <div style={{ position: 'absolute', bottom: '75px', left: '50%', transform: 'translateX(-50%)', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: '250px', width: '100%', zIndex: 10 }}>
         {gameState.hand.map((card, index) => {
           const angle = startAngle + (index * cardSpacingAngle);
           // Calculate Y offset based on a circular path so cards array forms an arc
