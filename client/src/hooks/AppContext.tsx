@@ -39,7 +39,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('lc_music', String(musicEnabled));
     if (musicEnabled) {
       if (!audioRef.current) {
-        audioRef.current = new Audio('/src/assets/bgmusic.mp3');
+        audioRef.current = new Audio('/assets/bgmusic.mp3');
         audioRef.current.loop = true;
         audioRef.current.volume = 0.3;
       }

@@ -161,7 +161,7 @@ const GamePage: React.FC = () => {
 
   if (!gameState.room.gameStarted) {
     return (
-      <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'url(/src/assets/background.png)', backgroundSize: 'cover' }}>
+      <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'url(/assets/background.png)', backgroundSize: 'cover' }}>
         <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h1 className="text-gradient">Lobby: {gameState.room.roomCode}</h1>
@@ -173,7 +173,7 @@ const GamePage: React.FC = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
               {gameState.room.players.map(p => (
                 <div key={p.socketId} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                  <img src={`/src/assets/${p.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
+                  <img src={`/assets/${p.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
                   <span style={{ color: 'white', fontWeight: 'bold' }}>{p.nickname} {p.isHost && '👑'}</span>
                 </div>
               ))}
@@ -358,7 +358,7 @@ const GamePage: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem', zIndex: 10 }}>
                 {/* Avatar */}
                 <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', border: isTurn ? '3px solid #22c55e' : '3px solid #3b82f6', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', marginBottom: '-10px', zIndex: 11 }}>
-                  <img src={`/src/assets/${player.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={`/assets/${player.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 {/* Name Pill */}
                 <div style={{ background: isTurn ? '#22c55e' : '#3b82f6', padding: '0.2rem 1rem', borderRadius: '1rem', color: 'white', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', border: '2px solid #1e293b', zIndex: 12 }}>
@@ -427,7 +427,7 @@ const GamePage: React.FC = () => {
       <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
         {/* My Avatar */}
         <div style={{ width: '70px', height: '70px', borderRadius: '16px', background: '#e2e8f0', overflow: 'hidden', border: isMyTurn() ? '4px solid #22c55e' : '4px solid #3b82f6', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', marginBottom: '-15px', zIndex: 11 }}>
-          <img src={`/src/assets/${myPlayer?.profilePic || 'profile1.png'}`} alt="My Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={`/assets/${myPlayer?.profilePic || 'profile1.png'}`} alt="My Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         {/* My Name Pill */}
         <div style={{ background: isMyTurn() ? '#22c55e' : '#3b82f6', padding: '0.4rem 1.5rem', borderRadius: '1.5rem', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', border: '3px solid #1e293b', zIndex: 12 }}>

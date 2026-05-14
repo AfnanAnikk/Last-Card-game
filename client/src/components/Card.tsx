@@ -100,7 +100,7 @@ const Card: React.FC<CardProps> = ({ card, onClick, playable = false, isFaceDown
     >
       {!imageError ? (
         <img 
-          src={isFaceDown ? '/src/assets/cards/card_back.png' : `/src/assets/cards/${card.imagePath}`} 
+          src={isFaceDown ? '/assets/cards/card_back.png' : `/assets/cards/${card.imagePath}`} 
           alt={isFaceDown ? 'Card Back' : `${card.color} ${card.value}`}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onError={() => setImageError(true)}
