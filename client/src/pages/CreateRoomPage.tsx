@@ -74,11 +74,11 @@ const CreateRoomPage: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
             <h3 style={{ color: 'white', marginBottom: '0.5rem', fontWeight: 'bold' }}>House Rules</h3>
             <label style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={playWithStack} onChange={(e) => setPlayWithStack(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem' }} />
-              Play with Stack (Stack rule)
+              <input type="checkbox" checked={playWithStack} onChange={(e) => setPlayWithStack(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem', accentColor: 'orangered' }} />
+              Play with Stack (Discard All)
             </label>
             <label style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" checked={playWithPlus6Plus10} onChange={(e) => setPlayWithPlus6Plus10(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem' }} />
+              <input type="checkbox" color="black" checked={playWithPlus6Plus10} onChange={(e) => setPlayWithPlus6Plus10(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem', accentColor: 'orangered' }} />
               Include +6 and +10 Cards
             </label>
           </div>
@@ -87,7 +87,7 @@ const CreateRoomPage: React.FC = () => {
             Create & Join Lobby
           </button>
           
-          <button type="button" className="btn-primary" onClick={() => navigate('/')} style={{ background: 'transparent', border: '1px solid var(--card-border)', marginTop: '0.5rem' }}>
+          <button type="button" className="btn-primary" onClick={() => navigate('/')} style={{border: '1px solid var(--card-border)', marginTop: '0.5rem' }}>
             Back to Home
           </button>
         </form>

@@ -83,7 +83,7 @@ const Card: React.FC<CardProps> = ({ card, onClick, playable = false, isFaceDown
       style={{
         width: '100px',
         height: '150px',
-        borderRadius: '14px',
+        borderRadius: '8px',
         cursor: playable ? 'pointer' : 'default',
         transition: 'all 0.2s ease',
         boxShadow: playable ? '0 10px 20px rgba(99, 102, 241, 0.4)' : '0 4px 6px rgba(0,0,0,0.3)',

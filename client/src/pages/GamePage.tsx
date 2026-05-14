@@ -165,7 +165,7 @@ const GamePage: React.FC = () => {
         <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h1 className="text-gradient">Lobby: {gameState.room.roomCode}</h1>
-            <button onClick={() => navigate('/')} className="btn-primary" style={{ background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '0.5rem 1rem' }}>Leave</button>
+            <button onClick={() => navigate('/')} className="btn-primary" style={{border: '1px solid #ef4444', padding: '0.5rem 1rem' }}>Leave</button>
           </div>
 
           <div style={{ marginBottom: '2rem' }}>
@@ -173,8 +173,8 @@ const GamePage: React.FC = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
               {gameState.room.players.map(p => (
                 <div key={p.socketId} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '2rem' }}>
-                  <img src={`/assets/${p.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />
-                  <span style={{ color: 'white', fontWeight: 'bold' }}>{p.nickname} {p.isHost && '👑'}</span>
+                  <img src={`/assets/${p.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '70px', height: '70px', borderRadius: '50%' }} />
+                  <span style={{ color: 'white', fontWeight: 'bold' }}>{p.nickname} {p.isHost && '(Host)'}</span>
                 </div>
               ))}
             </div>
@@ -193,7 +193,7 @@ const GamePage: React.FC = () => {
                     }
                   }}
                   disabled={!amIHost}
-                  style={{ width: '1.5rem', height: '1.5rem' }} 
+                  style={{ width: '1.5rem', height: '1.5rem', accentColor: 'orangered' }} 
                 />
                 Play with Stack (Discard All)
               </label>
@@ -208,7 +208,7 @@ const GamePage: React.FC = () => {
                     }
                   }}
                   disabled={!amIHost}
-                  style={{ width: '1.5rem', height: '1.5rem' }} 
+                  style={{ width: '1.5rem', height: '1.5rem', accentColor: 'orangered' }} 
                 />
                 Include +6 and +10 Cards
               </label>
@@ -253,7 +253,7 @@ const GamePage: React.FC = () => {
 
   // Calculate fan angles
   const fanRadius = 400; 
-  const cardSpacingAngle = 10; 
+  const cardSpacingAngle = 7; 
   const totalAngle = (gameState.hand.length - 1) * cardSpacingAngle;
   const startAngle = -totalAngle / 2;
 
@@ -268,11 +268,17 @@ const GamePage: React.FC = () => {
         >
           <LogOut size={16} /> Quit Game
         </button>
+      </div>
+      <div style={{position: 'absolute', top: '15rem', left: '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: 'rotate(45deg)'}}>
+        <div onClick={handleDrawCard} style={{cursor: isMyTurn() ? 'pointer' : 'default', transition: 'transform 0.2s', transform: isMyTurn() ? 'scale(1.05)' : 'none'}}>
+          <div style={{transform: 'scale(0.5)', transformOrigin: 'top left'}}>
+            <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
+          </div>
 
-        <div onClick={handleDrawCard} style={{ cursor: isMyTurn() ? 'pointer' : 'default', transition: 'transform 0.2s', transform: isMyTurn() ? 'scale(1.05)' : 'none' }}>
-          <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
           {isMyTurn() && (
-            <div style={{ textAlign: 'center', color: '#facc15', fontWeight: 'bold', marginTop: '0.5rem', textShadow: '1px 1px 2px black' }}>Draw</div>
+            <div style={{textAlign: 'center', color: '#fa3715', fontWeight: 'bold', marginTop: '0.5rem', marginRight: '1.5rem', textShadow: '1px 1px 2px black'}}>
+              Draw
+            </div>
           )}
         </div>
       </div>
@@ -281,7 +287,7 @@ const GamePage: React.FC = () => {
       <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 10 }}>
         <button 
           onClick={() => setShowSettings(true)}
-          style={{ background: 'rgba(30, 41, 59, 0.8)', color: 'white', border: '1px solid #475569', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ background: '#f10f0f', color: 'white', border: '1px solid #475569', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <SettingsIcon size={24} />
         </button>
@@ -310,7 +316,7 @@ const GamePage: React.FC = () => {
       )}
 
       {/* Opponents Layout */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', top: 5, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
         {otherPlayers.map((player, index) => {
           const isTurn = gameState.room.players.findIndex(p => p.socketId === player.socketId) === gameState.room.currentTurnIndex;
           const totalOpps = otherPlayers.length;
@@ -321,35 +327,35 @@ const GamePage: React.FC = () => {
           
           if (totalOpps === 1) {
             // 2 Players total -> 1 Opponent
-            posStyle = { top: '2rem', left: '50%', transform: 'translateX(-50%)' };
+            posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' };
             baseRotation = 180;
           } else if (totalOpps === 2) {
             // 3 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '2rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
-            if (index === 1) { posStyle = { top: '50%', right: '2rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 1) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 3) {
             // 4 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '2rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
-            if (index === 1) { posStyle = { top: '2rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
-            if (index === 2) { posStyle = { top: '50%', right: '2rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 1) { posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
+            if (index === 2) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 4) {
             // 5 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '2rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
             if (index === 1) { posStyle = { top: '2rem', left: '15rem' }; baseRotation = 135; }
             if (index === 2) { posStyle = { top: '2rem', right: '15rem' }; baseRotation = -135; }
-            if (index === 3) { posStyle = { top: '50%', right: '2rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 3) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 5) {
             // 6 Players total
-            if (index === 0) { posStyle = { bottom: '15rem', left: '2rem' }; baseRotation = 45; }
-            if (index === 1) { posStyle = { top: '2rem', left: '15rem' }; baseRotation = 135; }
-            if (index === 2) { posStyle = { top: '2rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
-            if (index === 3) { posStyle = { top: '2rem', right: '15rem' }; baseRotation = -135; }
-            if (index === 4) { posStyle = { bottom: '15rem', right: '2rem' }; baseRotation = -45; }
+            if (index === 0) { posStyle = { bottom: '15rem', left: '5rem' }; baseRotation = 45; }
+            if (index === 1) { posStyle = { top: '5rem', left: '15rem' }; baseRotation = 135; }
+            if (index === 2) { posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
+            if (index === 3) { posStyle = { top: '5rem', right: '15rem' }; baseRotation = -135; }
+            if (index === 4) { posStyle = { bottom: '15rem', right: '5rem' }; baseRotation = -45; }
           }
 
           // Fan out opponent's cards horizontally
           const oppFanRadius = 200;
-          const oppCardSpacing = 8;
+          const oppCardSpacing = 7;
           const oppTotalAngle = (player.cardCount - 1) * oppCardSpacing;
           const oppStartAngle = -oppTotalAngle / 2;
 
@@ -357,11 +363,11 @@ const GamePage: React.FC = () => {
             <div key={player.socketId} style={{ position: 'absolute', ...posStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: player.isConnected ? 1 : 0.5, zIndex: 5 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem', zIndex: 10 }}>
                 {/* Avatar */}
-                <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', border: isTurn ? '3px solid #22c55e' : '3px solid #3b82f6', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', marginBottom: '-10px', zIndex: 11 }}>
+                <div style={{ width: '90px', height: '90px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', border: isTurn ? '3px solid #22c55e' : '3px solid #3b82f6', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', marginBottom: '-10px', zIndex: 11 }}>
                   <img src={`/assets/${player.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 {/* Name Pill */}
-                <div style={{ background: isTurn ? '#22c55e' : '#3b82f6', padding: '0.2rem 1rem', borderRadius: '1rem', color: 'white', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', border: '2px solid #1e293b', zIndex: 12 }}>
+                <div style={{ background: isTurn ? '#22c55e' : '#3b82f6', padding: '0.2rem 1rem', borderRadius: '1rem', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', border: '2px solid #1e293b', zIndex: 12 }}>
                   {player.nickname}
                 </div>
               </div>
@@ -417,7 +423,7 @@ const GamePage: React.FC = () => {
       <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 20 }}>
         <button 
           onClick={handleLastCardClick}
-          style={{ width: '120px', height: '120px', borderRadius: '50%', background: 'linear-gradient(135deg, #ef4444, #b91c1c)', color: 'white', fontWeight: 900, fontSize: '1.5rem', border: '6px solid white', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.5)', animation: (iHaveOneCard && !myPlayer?.hasCalledLastCard) ? 'pulse 1s infinite' : 'none' }}
+          style={{ width: '120px', height: '120px', borderRadius: '10%', background: 'linear-gradient(to bottom, #ff0000, #b91c1c)', color: 'white', fontWeight: 900, textShadow: '2px 2px 0 #1e293b', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.5)', animation: (iHaveOneCard && !myPlayer?.hasCalledLastCard) ? 'pulse 1s infinite' : 'none' }}
         >
           LAST<br/>CARD!
         </button>
@@ -471,9 +477,9 @@ const GamePage: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div style={{ position: 'absolute', left: '1rem', bottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', pointerEvents: 'none', zIndex: 10 }}>
+      <div style={{ position: 'absolute', left: '0.5rem', bottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', pointerEvents: 'none', zIndex: 10 }}>
         {messages.map((msg, i) => (
-          <div key={i} style={{ background: 'rgba(0,0,0,0.6)', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: '#cbd5e1', fontSize: '1rem', animation: 'fadeIn 0.3s', fontWeight: 'bold' }}>
+          <div key={i} style={{ background: 'rgba(0, 0, 0, 0.11)', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: '#ffffff', fontSize: '0.7rem', animation: 'fadeIn 0.3s', fontWeight: 'bold' }}>
             {msg}
           </div>
         ))}

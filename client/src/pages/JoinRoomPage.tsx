@@ -84,7 +84,7 @@ const JoinRoomPage: React.FC = () => {
             Join Lobby
           </button>
           
-          <button type="button" className="btn-primary" onClick={() => navigate('/')} style={{ background: 'transparent', border: '1px solid var(--card-border)', marginTop: '0.5rem' }}>
+          <button type="button" className="btn-primary" onClick={() => navigate('/')} style={{border: '1px solid var(--card-border)', marginTop: '0.5rem' }}>
             Back to Home
           </button>
         </form>
