@@ -327,8 +327,8 @@ const GamePage: React.FC = () => {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       
-      {/* Top Left - Draw Pile & Quit */}
-      <div style={{ position: 'absolute', top: isMobile ? '50%' : '15rem', left: isMobile ? '0.5rem' : '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: isMobile ? 'translateY(-50%) rotate(45deg)' : 'rotate(45deg)' }}>
+      {/* Top Left - Draw Pile */}
+      <div style={{ position: 'absolute', top: isMobile ? '50%' : '15rem', left: isMobile ? 'calc(50% - 90px)' : '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: isMobile ? 'translateY(-50%) rotate(45deg)' : 'rotate(45deg)' }}>
         <div onClick={handleDrawCard} style={{ cursor: isMyTurn() ? 'pointer' : 'default' }}>
           <div style={{ animation: isMyTurn() ? 'drawPulse 1s infinite ease-in-out' : 'none', transformOrigin: 'center center', display: 'inline-block' }}>
             <div style={{ transform: isMobile ? 'scale(0.35)' : 'scale(0.5)', transformOrigin: 'top left', display: 'inline-block', border: isMyTurn() ? '3px solid orange' : 'none', borderRadius: '0.7rem', boxShadow: isMyTurn() ? '0 0 12px orange, 0 0 25px rgba(255, 165, 0, 0.8)' : 'none' }}>
@@ -521,7 +521,7 @@ const GamePage: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: isMobile ? '55px' : '75px', left: '50%', transform: 'translateX(-50%)', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: isMobile ? '160px' : '250px', width: '100%', zIndex: 10 }}>
+      <div style={{ position: 'absolute', bottom: isMobile ? '55px' : '75px', left: '50%', transform: isMobile ? 'translateX(-50%) scale(0.6)' : 'translateX(-50%)', transformOrigin: 'bottom center', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: isMobile ? '160px' : '250px', width: '100%', zIndex: 10 }}>
         {gameState.hand.map((card, index) => {
           const angle = startAngle + (index * cardSpacingAngle);
           const arcXSpacing = horizontalSpacing * 0.75;
