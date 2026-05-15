@@ -4,7 +4,7 @@ import { useSocket } from '../hooks/SocketContext';
 import { useApp } from '../hooks/AppContext';
 
 const CreateRoomPage: React.FC = () => {
-  const { nickname, setNickname, profilePic } = useApp();
+  const { nickname, setNickname, profilePic, playerId } = useApp();
   const [localNickname, setLocalNickname] = useState(nickname);
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [playWithStack, setPlayWithStack] = useState(true);
@@ -33,6 +33,7 @@ const CreateRoomPage: React.FC = () => {
       socket.emit('createRoom', { 
         nickname: localNickname, 
         profilePic, 
+        playerId,
         maxPlayers,
         settings: { playWithStack, playWithPlus6Plus10 }
       });

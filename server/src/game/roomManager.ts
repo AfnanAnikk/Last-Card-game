@@ -19,13 +19,14 @@ export class RoomManager {
     return code;
   }
 
-  public createRoom(socket: Socket, nickname: string, profilePic: string, maxPlayers: number, settings?: RoomSettings) {
+  public createRoom(socket: Socket, nickname: string, profilePic: string, playerId: string, maxPlayers: number, settings?: RoomSettings) {
     const roomCode = this.generateRoomCode();
     
     const host: Player = {
       socketId: socket.id,
       nickname,
       profilePic,
+      playerId,
       hand: [],
       isHost: true,
       isConnected: true,
@@ -44,8 +45,9 @@ export class RoomManager {
       winner: null,
       currentColor: null,
       pendingEffect: null,
-      settings: settings || { playWithStack: true, playWithPlus6Plus10: false },
-      pendingDraws: 0
+      settings: settings || { playWithStack: true, playWithPlus6Plus10: false, playWith07Swap: false },
+      pendingDraws: 0,
+      pendingSwap7: null
     };
 
     this.rooms.set(roomCode, newRoom);
@@ -55,7 +57,7 @@ export class RoomManager {
     this.broadcastGameState(roomCode);
   }
 
-  public joinRoom(socket: Socket, nickname: string, profilePic: string, roomCode: string) {
+  public joinRoom(socket: Socket, nickname: string, profilePic: string, playerId: string, roomCode: string) {
     const room = this.rooms.get(roomCode.toUpperCase());
 
     if (!room) {
@@ -73,7 +75,7 @@ export class RoomManager {
       return;
     }
 
-    const existingPlayer = room.players.find(p => p.nickname === nickname);
+    const existingPlayer = room.players.find(p => p.playerId === playerId);
     if (existingPlayer && !existingPlayer.isConnected) {
       existingPlayer.socketId = socket.id;
       existingPlayer.isConnected = true;
@@ -91,6 +93,7 @@ export class RoomManager {
       socketId: socket.id,
       nickname,
       profilePic,
+      playerId,
       hand: [],
       isHost: false,
       isConnected: true,
@@ -223,13 +226,16 @@ export class RoomManager {
         drawnCard: p.socketId === player.socketId ? p.drawnCard : null
       })),
       discardPileTop: room.discardPile.length > 0 ? room.discardPile[room.discardPile.length - 1] : null,
+      previousDiscardPileTop: room.discardPile.length > 1 ? room.discardPile[room.discardPile.length - 2] : null,
       currentTurnIndex: room.currentTurnIndex,
       direction: room.direction,
       gameStarted: room.gameStarted,
       winner: room.winner,
       currentColor: room.currentColor,
       settings: room.settings,
-      pendingDraws: room.pendingDraws
+      pendingDraws: room.pendingDraws,
+      pendingChallenge: room.pendingChallenge,
+      pendingSwap7: room.pendingSwap7
     };
 
     return {
@@ -261,6 +267,11 @@ export class RoomManager {
     const playerIndex = room.players.findIndex(p => p.socketId === socket.id);
     if (playerIndex === -1 || playerIndex !== room.currentTurnIndex) {
       socket.emit('invalidMove', 'Not your turn');
+      return;
+    }
+
+    if (room.pendingDraws > 0) {
+      socket.emit('invalidMove', 'You must accept the penalty draws or stack a plus card');
       return;
     }
 
@@ -362,6 +373,7 @@ export class RoomManager {
     }
 
     // Set Colors
+    const previousColor = room.currentColor;
     if (isSpecial && chosenColor && ['red', 'blue', 'green', 'yellow'].includes(chosenColor)) {
       room.currentColor = chosenColor as any;
       this.io.to(roomCode).emit('gameMessage', `${player.nickname} played ${card.type} and changed color to ${chosenColor}`);
@@ -380,6 +392,7 @@ export class RoomManager {
 
     // Special Action Resolution
     let skipNext = false;
+    let turnAdvancedByPlus = false;
 
     if (card.type === 'reverse') {
       room.direction = (room.direction * -1) as (1 | -1);
@@ -392,16 +405,41 @@ export class RoomManager {
       const amountStr = card.type.replace('plus', '');
       const drawAmount = parseInt(amountStr);
       if (!isNaN(drawAmount)) {
-        const nextPlayerIndex = (room.currentTurnIndex + room.direction + room.players.length) % room.players.length;
-        const nextPlayer = room.players[nextPlayerIndex];
-        this.drawCardsToPlayer(room, nextPlayer, drawAmount);
-        this.io.to(roomCode).emit('gameMessage', `${nextPlayer.nickname} was forced to draw ${drawAmount} cards!`);
-        skipNext = true;
+        if (room.pendingDraws === 0 && ['plus4', 'plus6', 'plus10'].includes(card.type)) {
+          room.pendingChallenge = {
+            playerWhoPlayedId: player.socketId,
+            previousColor: previousColor
+          };
+        } else if (['plus4', 'plus6', 'plus10'].includes(card.type)) {
+          room.pendingChallenge = null;
+        } else if (card.type === 'plus2') {
+          room.pendingChallenge = null;
+        }
+        
+        room.pendingDraws += drawAmount;
+        turnAdvancedByPlus = true;
+      }
+    }
+
+    if (room.settings.playWith07Swap) {
+      if (card.value === '0') {
+        // Shift hands in the current direction
+        const hands = room.players.map(p => [...p.hand]);
+        for (let i = 0; i < room.players.length; i++) {
+          const giverIndex = (i - room.direction + room.players.length) % room.players.length;
+          room.players[i].hand = hands[giverIndex];
+        }
+        this.io.to(roomCode).emit('gameMessage', `${player.nickname} played a 0! Everyone's hands were shifted.`);
+      } else if (card.value === '7') {
+        room.pendingSwap7 = player.socketId;
+        this.io.to(roomCode).emit('gameMessage', `${player.nickname} played a 7 and gets to swap hands!`);
+        this.broadcastGameState(roomCode);
+        return; // Pause turn advancement until they choose
       }
     }
 
     this.advanceTurn(room);
-    if (skipNext) {
+    if (skipNext && !turnAdvancedByPlus) {
       this.advanceTurn(room);
     }
 
@@ -438,7 +476,109 @@ export class RoomManager {
     }
   }
 
+  public acceptDraws(socket: Socket, roomCode: string) {
+    const room = this.rooms.get(roomCode.toUpperCase());
+    if (!room || !room.gameStarted || room.winner) return;
+
+    const playerIndex = room.players.findIndex(p => p.socketId === socket.id);
+    if (playerIndex === -1 || playerIndex !== room.currentTurnIndex) return;
+
+    if (room.pendingDraws > 0) {
+      const player = room.players[playerIndex];
+      this.drawCardsToPlayer(room, player, room.pendingDraws);
+      this.io.to(roomCode).emit('gameMessage', `${player.nickname} accepted and drew ${room.pendingDraws} cards.`);
+      room.pendingDraws = 0;
+      room.pendingChallenge = null;
+      this.advanceTurn(room);
+      this.broadcastGameState(roomCode);
+    }
+  }
+
+  public challengeDraws(socket: Socket, roomCode: string) {
+    const room = this.rooms.get(roomCode.toUpperCase());
+    if (!room || !room.gameStarted || room.winner) return;
+
+    const playerIndex = room.players.findIndex(p => p.socketId === socket.id);
+    if (playerIndex === -1 || playerIndex !== room.currentTurnIndex) return;
+
+    const challenger = room.players[playerIndex];
+    const challenge = room.pendingChallenge;
+    
+    if (!challenge || room.pendingDraws === 0) {
+      socket.emit('invalidMove', 'Nothing to challenge');
+      return;
+    }
+
+    const playerWhoPlayed = room.players.find(p => p.socketId === challenge.playerWhoPlayedId);
+    if (!playerWhoPlayed) return;
+
+    const hasPreviousColor = playerWhoPlayed.hand.some(c => c.color === challenge.previousColor);
+
+    if (hasPreviousColor) {
+      // Challenger Wins! Player who played the card takes the penalty
+      this.drawCardsToPlayer(room, playerWhoPlayed, room.pendingDraws);
+      this.io.to(roomCode).emit('gameMessage', `${challenger.nickname} won the challenge! ${playerWhoPlayed.nickname} drew ${room.pendingDraws} cards.`);
+      room.pendingDraws = 0;
+      room.pendingChallenge = null;
+      // Challenger doesn't draw, they can now play a card because their turn does not advance
+    } else {
+      // Challenger Loses! Challenger takes pendingDraws + 2
+      const penaltyDraws = room.pendingDraws + 2;
+      this.drawCardsToPlayer(room, challenger, penaltyDraws);
+      this.io.to(roomCode).emit('gameMessage', `${challenger.nickname} lost the challenge! They drew ${penaltyDraws} cards.`);
+      room.pendingDraws = 0;
+      room.pendingChallenge = null;
+      this.advanceTurn(room);
+    }
+    
+    this.broadcastGameState(roomCode);
+  }
+
+  private checkAutoDraw(room: Room) {
+    if (room.pendingDraws > 0) {
+      const currentPlayer = room.players[room.currentTurnIndex];
+      
+      // Does the player have a counter + card?
+      const hasCounter = currentPlayer.hand.some(card => card.type.startsWith('plus'));
+      
+      // Do they have a challenge?
+      const hasChallenge = room.pendingChallenge != null;
+
+      if (!hasCounter && !hasChallenge) {
+        // Force draw and skip
+        this.drawCardsToPlayer(room, currentPlayer, room.pendingDraws);
+        this.io.to(room.roomCode).emit('gameMessage', `${currentPlayer.nickname} had no counter and was forced to draw ${room.pendingDraws} cards!`);
+        room.pendingDraws = 0;
+        room.pendingChallenge = null;
+        this.advanceTurn(room);
+      }
+    }
+  }
+
   private advanceTurn(room: Room) {
     room.currentTurnIndex = (room.currentTurnIndex + room.direction + room.players.length) % room.players.length;
+    this.checkAutoDraw(room);
+  }
+
+  public swapHands(socket: Socket, roomCode: string, targetSocketId: string) {
+    const room = this.rooms.get(roomCode.toUpperCase());
+    if (!room || !room.gameStarted || room.winner) return;
+
+    if (room.pendingSwap7 !== socket.id) return;
+
+    const player = room.players.find(p => p.socketId === socket.id);
+    const target = room.players.find(p => p.socketId === targetSocketId);
+
+    if (player && target) {
+      const temp = [...player.hand];
+      player.hand = [...target.hand];
+      target.hand = temp;
+
+      this.io.to(roomCode).emit('gameMessage', `${player.nickname} swapped hands with ${target.nickname}!`);
+      
+      room.pendingSwap7 = null;
+      this.advanceTurn(room);
+      this.broadcastGameState(roomCode);
+    }
   }
 }

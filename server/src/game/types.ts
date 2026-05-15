@@ -11,6 +11,7 @@ export interface Card {
 
 export interface Player {
   socketId: string;
+  playerId: string;
   nickname: string;
   hand: Card[];
   isHost: boolean;
@@ -23,6 +24,7 @@ export interface Player {
 export interface RoomSettings {
   playWithStack: boolean;
   playWithPlus6Plus10: boolean;
+  playWith07Swap: boolean;
 }
 
 export interface Room {
@@ -40,6 +42,11 @@ export interface Room {
   pendingEffect: string | null;
   settings: RoomSettings;
   pendingDraws: number;
+  pendingChallenge?: {
+    playerWhoPlayedId: string;
+    previousColor: Color | null;
+  } | null;
+  pendingSwap7: string | null;
 }
 
 // Client representations (safe state)
@@ -60,6 +67,7 @@ export interface ClientRoomState {
   maxPlayers: number;
   players: ClientPlayer[];
   discardPileTop: Card | null;
+  previousDiscardPileTop?: Card | null;
   currentTurnIndex: number;
   direction: 1 | -1;
   gameStarted: boolean;
@@ -67,4 +75,9 @@ export interface ClientRoomState {
   currentColor: Color | null;
   settings: RoomSettings;
   pendingDraws: number;
+  pendingChallenge?: {
+    playerWhoPlayedId: string;
+    previousColor: Color | null;
+  } | null;
+  pendingSwap7: string | null;
 }

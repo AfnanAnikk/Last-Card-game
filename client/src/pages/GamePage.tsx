@@ -5,7 +5,7 @@ import { useSocket } from '../hooks/SocketContext';
 import { useApp } from '../hooks/AppContext';
 import Card from '../components/Card';
 import { Card as CardType, ClientRoomState } from '../../../server/src/game/types';
-import { LogOut, Settings as SettingsIcon, Volume2, VolumeX } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, VolumeX } from 'lucide-react';
 
 interface GameState {
   room: ClientRoomState;
@@ -25,6 +25,8 @@ const GamePage: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [isHoveringDropZone, setIsHoveringDropZone] = useState(false);
   const [drawnCardPopup, setDrawnCardPopup] = useState<CardType | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!socket) {
@@ -90,6 +92,11 @@ const GamePage: React.FC = () => {
 
   const isCardPlayable = (card: CardType) => {
     if (!isMyTurn() || !gameState) return false;
+
+    if (gameState.room.pendingDraws > 0) {
+      return card.type.startsWith('plus');
+    }
+
     const topCard = gameState.room.discardPileTop;
     if (!topCard) return true;
 
@@ -115,6 +122,21 @@ const GamePage: React.FC = () => {
     }
   };
 
+  const handleCardClick = (card: CardType) => {
+    // Mobile-friendly two-tap logic
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+      if (selectedCardId === card.id) {
+        handlePlayCard(card);
+        setSelectedCardId(null);
+      } else {
+        setSelectedCardId(card.id);
+      }
+    } else {
+      // Desktop - single click
+      handlePlayCard(card);
+    }
+  };
+
   const handleKeepCard = () => {
     setDrawnCardPopup(null);
     socket?.emit('keepDrawnCard', { roomCode });
@@ -134,7 +156,11 @@ const GamePage: React.FC = () => {
 
   const handleDrawCard = () => {
     if (!isMyTurn()) return;
-    socket?.emit('drawCard', { roomCode });
+    if (gameState?.room.pendingDraws && gameState.room.pendingDraws > 0) {
+      socket?.emit('acceptDraws', { roomCode });
+    } else {
+      socket?.emit('drawCard', { roomCode });
+    }
   };
 
   const handleColorPick = (color: string) => {
@@ -212,6 +238,21 @@ const GamePage: React.FC = () => {
                 />
                 Include +6 and +10 Cards
               </label>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#cbd5e1', cursor: amIHost ? 'pointer' : 'default', opacity: amIHost ? 1 : 0.6 }}>
+                <input 
+                  type="checkbox" 
+                  checked={gameState.room.settings.playWith07Swap} 
+                  onChange={(e) => {
+                    if (amIHost) {
+                      socket?.emit('updateSettings', { roomCode, settings: { ...gameState.room.settings, playWith07Swap: e.target.checked } });
+                    }
+                  }}
+                  disabled={!amIHost}
+                  style={{ width: '1.5rem', height: '1.5rem', accentColor: 'orangered' }} 
+                />
+                Play with 0-7 Swap
+              </label>
             </div>
           </div>
 
@@ -253,8 +294,25 @@ const GamePage: React.FC = () => {
 
   // Calculate fan angles
   const fanRadius = 400; 
-  const cardSpacingAngle = 7; 
-  const totalAngle = (gameState.hand.length - 1) * cardSpacingAngle;
+  let cardSpacingAngle = 7; 
+  let horizontalSpacing = 40;
+
+  const handSize = gameState.hand.length;
+  if (handSize > 25) {
+    cardSpacingAngle = 2;
+    horizontalSpacing = 15;
+  } else if (handSize > 20) {
+    cardSpacingAngle = 3;
+    horizontalSpacing = 20;
+  } else if (handSize > 15) {
+    cardSpacingAngle = 4;
+    horizontalSpacing = 25;
+  } else if (handSize > 10) {
+    cardSpacingAngle = 5;
+    horizontalSpacing = 30;
+  }
+
+  const totalAngle = (handSize - 1) * cardSpacingAngle;
   const startAngle = -totalAngle / 2;
 
   return (
@@ -342,9 +400,10 @@ const GamePage: React.FC = () => {
           }
 
           // Fan out opponent's cards horizontally
+          const renderedCardsCount = Math.min(player.cardCount, 15);
           const oppFanRadius = 200;
           const oppCardSpacing = 7;
-          const oppTotalAngle = (player.cardCount - 1) * oppCardSpacing;
+          const oppTotalAngle = (renderedCardsCount - 1) * oppCardSpacing;
           const oppStartAngle = -oppTotalAngle / 2;
 
           return (
@@ -362,19 +421,19 @@ const GamePage: React.FC = () => {
               
               <div style={{ position: 'relative', width: '0px', height: '0px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', transform: `rotate(${baseRotation}deg)`, display: 'flex', justifyContent: 'center', top: '10px' }}>
-                  <div style={{ position: 'relative', width: `${20 + (player.cardCount * 10)}px`, height: '50px', display: 'flex', justifyContent: 'center' }}>
-                    {Array.from({ length: Math.min(player.cardCount, 15) }).map((_, i) => {
+                  <div style={{ position: 'relative', width: `${20 + (renderedCardsCount * 10)}px`, height: '50px', display: 'flex', justifyContent: 'center' }}>
+                    {Array.from({ length: renderedCardsCount }).map((_, i) => {
                       const angle = oppStartAngle + (i * oppCardSpacing);
-                      const yOff = oppFanRadius - Math.sqrt(Math.pow(oppFanRadius, 2) - Math.pow((i - player.cardCount / 2) * 10, 2));
+                      const yOff = oppFanRadius - Math.sqrt(Math.pow(oppFanRadius, 2) - Math.pow((i - renderedCardsCount / 2) * 10, 2));
                       return (
-                        <div key={i} style={{ position: 'absolute', transformOrigin: 'bottom center', transform: `translateX(${(i - player.cardCount / 2) * 10}px) translateY(${isNaN(yOff) ? 0 : Math.min(yOff, 20)}px) rotate(${angle}deg)` }}>
+                        <div key={i} style={{ position: 'absolute', transformOrigin: 'bottom center', transform: `translateX(${(i - renderedCardsCount / 2) * 10}px) translateY(${isNaN(yOff) ? 0 : Math.min(yOff, 20)}px) rotate(${angle}deg)` }}>
                           <div style={{ transform: 'scale(0.6)', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden' }}>
                             <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
                           </div>
                         </div>
                       );
                     })}
-                    {player.cardCount > 15 && <div style={{ position: 'absolute', right: -30, top: 20, color: 'white', fontWeight: 'bold', textShadow: '1px 1px 2px black' }}>+{player.cardCount - 15}</div>}
+                    {player.cardCount > 15 && <div style={{ position: 'absolute', right: -30, top: 20, color: 'white', fontWeight: 'bold', textShadow: '1px 1px 2px black', transform: `rotate(${-baseRotation}deg)` }}>+{player.cardCount - 15}</div>}
                   </div>
                 </div>
               </div>
@@ -391,10 +450,16 @@ const GamePage: React.FC = () => {
           border: isHoveringDropZone ? '4px dashed #a855f7' : '4px dashed transparent',
           borderRadius: '1rem', transition: 'border 0.2s', zIndex: 5
         }}
+        onClick={() => setSelectedCardId(null)} // Click outside to deselect
         onDragOver={(e) => { e.preventDefault(); setIsHoveringDropZone(true); }}
         onDragLeave={() => setIsHoveringDropZone(false)}
         onDrop={handleDrop}
       >
+        {gameState.room.previousDiscardPileTop && (
+          <div style={{ position: 'absolute', pointerEvents: 'none', opacity: 0.8, transform: 'scale(0.9) rotate(-15deg) translate(-10px, -10px)' }}>
+            <Card card={gameState.room.previousDiscardPileTop} />
+          </div>
+        )}
         {gameState.room.discardPileTop ? (
           <div style={{ position: 'relative', pointerEvents: 'none' }}>
             <Card card={gameState.room.discardPileTop} />
@@ -406,6 +471,28 @@ const GamePage: React.FC = () => {
           <div style={{ width: '100px', height: '150px', border: '2px dashed rgba(255,255,255,0.2)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)' }}>Play Here</div>
         )}
       </div>
+
+      {isMyTurn() && gameState.room.pendingDraws > 0 && (
+        <div style={{ position: 'absolute', top: '65%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '1rem', zIndex: 100 }}>
+          <button 
+            onClick={() => socket?.emit('acceptDraws', { roomCode })}
+            className="btn-primary"
+            style={{ background: '#ef4444', fontSize: '1.2rem', padding: '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
+          >
+            Take {gameState.room.pendingDraws} Cards
+          </button>
+          
+          {gameState.room.pendingChallenge && (
+            <button 
+              onClick={() => socket?.emit('challengeDraws', { roomCode })}
+              className="btn-primary"
+              style={{ background: '#eab308', color: 'black', fontSize: '1.2rem', padding: '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
+            >
+              Challenge
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Bottom Right - Last Card Button */}
       <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 20 }}>
@@ -433,7 +520,14 @@ const GamePage: React.FC = () => {
         {gameState.hand.map((card, index) => {
           const angle = startAngle + (index * cardSpacingAngle);
           // Calculate Y offset based on a circular path so cards array forms an arc
-          const yOffset = fanRadius - Math.sqrt(Math.pow(fanRadius, 2) - Math.pow(index * 30 - (gameState.hand.length * 15), 2));
+          const arcXSpacing = horizontalSpacing * 0.75;
+          const yOffset = fanRadius - Math.sqrt(Math.pow(fanRadius, 2) - Math.pow((index - handSize / 2) * arcXSpacing, 2));
+          
+          const isSelected = selectedCardId === card.id;
+          const isHovered = hoveredCardId === card.id;
+          const isPopped = isSelected || isHovered;
+          
+          const baseTransform = `translateX(${(index - handSize / 2) * horizontalSpacing}px) translateY(${isNaN(yOffset) ? 0 : Math.min(yOffset, 100)}px) rotate(${angle}deg)`;
           
           return (
             <div 
@@ -441,24 +535,38 @@ const GamePage: React.FC = () => {
               style={{ 
                 position: 'absolute',
                 transformOrigin: 'bottom center',
-                transform: `translateX(${(index - gameState.hand.length / 2) * 40}px) translateY(${isNaN(yOffset) ? 0 : Math.min(yOffset, 100)}px) rotate(${angle}deg)`,
-                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                zIndex: index
+                transform: baseTransform,
+                zIndex: isPopped ? 100 : index,
+                width: '100px',
+                height: '150px'
               }} 
-              onMouseOver={(e) => { 
-                e.currentTarget.style.zIndex = '100'; 
-                e.currentTarget.style.transform = `translateX(${(index - gameState.hand.length / 2) * 40}px) translateY(-50px) rotate(0deg) scale(1.1)`;
-              }} 
-              onMouseOut={(e) => { 
-                e.currentTarget.style.zIndex = String(index);
-                e.currentTarget.style.transform = `translateX(${(index - gameState.hand.length / 2) * 40}px) translateY(${isNaN(yOffset) ? 0 : Math.min(yOffset, 100)}px) rotate(${angle}deg)`;
+              onMouseEnter={() => {
+                if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+                  setHoveredCardId(card.id);
+                }
               }}
+              onMouseLeave={() => {
+                if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+                  setHoveredCardId(null);
+                }
+              }}
+              onClick={() => handleCardClick(card)}
             >
-              <Card 
-                card={card} 
-                playable={isCardPlayable(card)} 
-                onClick={() => handlePlayCard(card)} 
-              />
+              {/* Inner visual container that physically pops out */}
+              <div style={{
+                width: '100%', height: '100%',
+                transformOrigin: 'bottom center',
+                transform: isPopped ? `translateY(-50px) rotate(${-angle}deg) scale(1.1)` : 'none',
+                transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                pointerEvents: 'none' /* Prevents the expanded graphic from blocking neighboring hit areas */
+              }}>
+                <div style={{ pointerEvents: 'auto', width: '100%', height: '100%' }}>
+                  <Card 
+                    card={card} 
+                    playable={isCardPlayable(card)} 
+                  />
+                </div>
+              </div>
             </div>
           );
         })}
@@ -512,6 +620,30 @@ const GamePage: React.FC = () => {
                   onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                   onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7 Swap Selection Modal */}
+      {gameState.room.pendingSwap7 === socket?.id && (
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', padding: '3rem', width: '90%', maxWidth: '500px' }}>
+            <h2 className="text-gradient" style={{ fontSize: '2rem', textAlign: 'center' }}>Choose a Player to Swap Hands!</h2>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {otherPlayers.map(p => (
+                <button 
+                  key={p.socketId}
+                  onClick={() => socket?.emit('chooseSwap7Target', { roomCode, targetSocketId: p.socketId })}
+                  className="btn-primary"
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', border: '2px solid transparent', cursor: 'pointer' }}
+                  onMouseOver={(e) => e.currentTarget.style.borderColor = 'white'}
+                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'transparent'}
+                >
+                  <img src={`/assets/${p.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '60px', height: '60px', borderRadius: '50%' }} />
+                  <span>{p.nickname} ({p.cardCount} cards)</span>
+                </button>
               ))}
             </div>
           </div>

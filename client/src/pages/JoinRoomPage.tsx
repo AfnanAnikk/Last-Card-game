@@ -4,7 +4,7 @@ import { useSocket } from '../hooks/SocketContext';
 import { useApp } from '../hooks/AppContext';
 
 const JoinRoomPage: React.FC = () => {
-  const { nickname, setNickname, profilePic } = useApp();
+  const { nickname, setNickname, profilePic, playerId } = useApp();
   const [localNickname, setLocalNickname] = useState(nickname);
   const [roomCode, setRoomCode] = useState('');
   const [error, setError] = useState('');
@@ -37,7 +37,7 @@ const JoinRoomPage: React.FC = () => {
     if (!localNickname.trim() || !roomCode.trim()) return;
     setNickname(localNickname); // Save globally
     if (socket && isConnected) {
-      socket.emit('joinRoom', { nickname: localNickname, profilePic, roomCode: roomCode.toUpperCase() });
+      socket.emit('joinRoom', { nickname: localNickname, profilePic, roomCode: roomCode.toUpperCase(), playerId });
     }
   };
 

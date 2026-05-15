@@ -7,6 +7,7 @@ interface AppContextType {
   setProfilePic: (pic: string) => void;
   musicEnabled: boolean;
   setMusicEnabled: (enabled: boolean) => void;
+  playerId: string;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -16,11 +17,20 @@ const AppContext = createContext<AppContextType>({
   setProfilePic: () => {},
   musicEnabled: true,
   setMusicEnabled: () => {},
+  playerId: '',
 });
 
 export const useApp = () => useContext(AppContext);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [playerId] = useState(() => {
+    let id = localStorage.getItem('lc_playerId');
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+      localStorage.setItem('lc_playerId', id);
+    }
+    return id;
+  });
   const [nickname, setNickname] = useState(localStorage.getItem('lc_nickname') || '');
   const [profilePic, setProfilePic] = useState(localStorage.getItem('lc_profilePic') || 'profile1.png');
   const [musicEnabled, setMusicEnabled] = useState(localStorage.getItem('lc_music') !== 'false');
@@ -63,7 +73,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [musicEnabled]);
 
   return (
-    <AppContext.Provider value={{ nickname, setNickname, profilePic, setProfilePic, musicEnabled, setMusicEnabled }}>
+    <AppContext.Provider value={{ nickname, setNickname, profilePic, setProfilePic, musicEnabled, setMusicEnabled, playerId }}>
       {children}
     </AppContext.Provider>
   );

@@ -11,6 +11,10 @@ interface CardProps {
 const Card: React.FC<CardProps> = ({ card, onClick, playable = false, isFaceDown = false }) => {
   const [imageError, setImageError] = React.useState(false);
 
+  React.useEffect(() => {
+    setImageError(false);
+  }, [card.id, isFaceDown]);
+
   // Determine card style based on color
   let bgColor = 'var(--black)';
   let textColor = 'white';
@@ -90,12 +94,6 @@ const Card: React.FC<CardProps> = ({ card, onClick, playable = false, isFaceDown
         border: playable ? '2px solid #a855f7' : 'none',
         overflow: 'hidden',
         position: 'relative'
-      }}
-      onMouseOver={(e) => {
-        if (playable) e.currentTarget.style.transform = 'translateY(-15px) scale(1.05)';
-      }}
-      onMouseOut={(e) => {
-        if (playable) e.currentTarget.style.transform = 'translateY(-10px) scale(1)';
       }}
     >
       {!imageError ? (

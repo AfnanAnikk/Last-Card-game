@@ -28,12 +28,12 @@ const roomManager = new RoomManager(io);
 io.on('connection', (socket: Socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  socket.on('createRoom', ({ nickname, profilePic, maxPlayers, settings }) => {
-    roomManager.createRoom(socket, nickname, profilePic, maxPlayers, settings);
+  socket.on('createRoom', ({ nickname, profilePic, playerId, maxPlayers, settings }) => {
+    roomManager.createRoom(socket, nickname, profilePic, playerId, maxPlayers, settings);
   });
 
-  socket.on('joinRoom', ({ nickname, profilePic, roomCode }) => {
-    roomManager.joinRoom(socket, nickname, profilePic, roomCode);
+  socket.on('joinRoom', ({ nickname, profilePic, playerId, roomCode }) => {
+    roomManager.joinRoom(socket, nickname, profilePic, playerId, roomCode);
   });
 
   socket.on('startGame', ({ roomCode }) => {
@@ -63,6 +63,18 @@ io.on('connection', (socket: Socket) => {
 
   socket.on('keepDrawnCard', ({ roomCode }) => {
     roomManager.keepDrawnCard(socket, roomCode);
+  });
+
+  socket.on('acceptDraws', ({ roomCode }) => {
+    roomManager.acceptDraws(socket, roomCode);
+  });
+
+  socket.on('challengeDraws', ({ roomCode }) => {
+    roomManager.challengeDraws(socket, roomCode);
+  });
+
+  socket.on('chooseSwap7Target', ({ roomCode, targetSocketId }) => {
+    roomManager.swapHands(socket, roomCode, targetSocketId);
   });
 
   socket.on('disconnect', () => {
