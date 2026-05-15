@@ -478,7 +478,7 @@ const GamePage: React.FC = () => {
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', padding: '3rem' }}>
             <h2 className="text-gradient" style={{ fontSize: '2rem' }}>You Drawn a Card!</h2>
-            <div style={{ transform: 'scale(1.5)', marginBottom: '1rem' }}>
+            <div style={{ marginTop: '2rem', transform: 'scale(1.5)', marginBottom: '2rem' }}>
               <Card card={drawnCardPopup} />
             </div>
             <div style={{ display: 'flex', gap: '1.5rem', width: '100%' }}>
