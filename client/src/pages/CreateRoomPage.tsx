@@ -9,6 +9,7 @@ const CreateRoomPage: React.FC = () => {
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [playWithStack, setPlayWithStack] = useState(true);
   const [playWithPlus6Plus10, setPlayWithPlus6Plus10] = useState(false);
+  const [playWith07Swap, setPlayWith07Swap] = useState(false);
   const { socket, isConnected } = useSocket();
   const navigate = useNavigate();
 
@@ -35,7 +36,7 @@ const CreateRoomPage: React.FC = () => {
         profilePic, 
         playerId,
         maxPlayers,
-        settings: { playWithStack, playWithPlus6Plus10 }
+        settings: { playWithStack, playWithPlus6Plus10, playWith07Swap }
       });
     }
   };
@@ -81,6 +82,10 @@ const CreateRoomPage: React.FC = () => {
             <label style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
               <input type="checkbox" color="black" checked={playWithPlus6Plus10} onChange={(e) => setPlayWithPlus6Plus10(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem', accentColor: 'orangered' }} />
               Include +6 and +10 Cards
+            </label>
+            <label style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <input type="checkbox" checked={playWith07Swap} onChange={(e) => setPlayWith07Swap(e.target.checked)} style={{ width: '1.2rem', height: '1.2rem', accentColor: 'orangered' }} />
+              Play with 0-7 Swap
             </label>
           </div>
           
