@@ -27,6 +27,13 @@ const GamePage: React.FC = () => {
   const [drawnCardPopup, setDrawnCardPopup] = useState<CardType | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 900);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 900);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (!socket) {
@@ -293,36 +300,38 @@ const GamePage: React.FC = () => {
   const iHaveOneCard = myPlayer?.cardCount === 1;
 
   // Calculate fan angles
-  const fanRadius = 400; 
-  let cardSpacingAngle = 7; 
-  let horizontalSpacing = 40;
+  const fanRadius = isMobile ? 300 : 400;
+  let cardSpacingAngle = isMobile ? 5 : 7;
+  let horizontalSpacing = isMobile ? 28 : 40;
 
   const handSize = gameState.hand.length;
   if (handSize > 25) {
-    cardSpacingAngle = 2;
-    horizontalSpacing = 15;
+    cardSpacingAngle = isMobile ? 1.5 : 2;
+    horizontalSpacing = isMobile ? 10 : 15;
   } else if (handSize > 20) {
-    cardSpacingAngle = 3;
-    horizontalSpacing = 20;
+    cardSpacingAngle = isMobile ? 2 : 3;
+    horizontalSpacing = isMobile ? 13 : 20;
   } else if (handSize > 15) {
-    cardSpacingAngle = 4;
-    horizontalSpacing = 25;
+    cardSpacingAngle = isMobile ? 3 : 4;
+    horizontalSpacing = isMobile ? 17 : 25;
   } else if (handSize > 10) {
-    cardSpacingAngle = 5;
-    horizontalSpacing = 30;
+    cardSpacingAngle = isMobile ? 4 : 5;
+    horizontalSpacing = isMobile ? 22 : 30;
   }
 
   const totalAngle = (handSize - 1) * cardSpacingAngle;
   const startAngle = -totalAngle / 2;
+  const cardPopOut = isMobile ? 25 : 50;
+  const cardScale = isMobile ? 0.8 : 1.1;
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       
       {/* Top Left - Draw Pile & Quit */}
-      <div style={{ position: 'absolute', top: '15rem', left: '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: 'rotate(45deg)' }}>
+      <div style={{ position: 'absolute', top: isMobile ? '50%' : '15rem', left: isMobile ? '0.5rem' : '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: isMobile ? 'translateY(-50%) rotate(45deg)' : 'rotate(45deg)' }}>
         <div onClick={handleDrawCard} style={{ cursor: isMyTurn() ? 'pointer' : 'default' }}>
           <div style={{ animation: isMyTurn() ? 'drawPulse 1s infinite ease-in-out' : 'none', transformOrigin: 'center center', display: 'inline-block' }}>
-            <div style={{ transform: 'scale(0.5)', transformOrigin: 'top left', display: 'inline-block', border: isMyTurn() ? '3px solid orange' : 'none', borderRadius: '0.7rem', boxShadow: isMyTurn() ? '0 0 12px orange, 0 0 25px rgba(255, 165, 0, 0.8)' : 'none' }}>
+            <div style={{ transform: isMobile ? 'scale(0.35)' : 'scale(0.5)', transformOrigin: 'top left', display: 'inline-block', border: isMyTurn() ? '3px solid orange' : 'none', borderRadius: '0.7rem', boxShadow: isMyTurn() ? '0 0 12px orange, 0 0 25px rgba(255, 165, 0, 0.8)' : 'none' }}>
               <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
             </div>
           </div>
@@ -371,32 +380,28 @@ const GamePage: React.FC = () => {
           let posStyle: React.CSSProperties = {};
           let baseRotation = 0;
           
+          const s = isMobile; // shorthand
           if (totalOpps === 1) {
-            // 2 Players total -> 1 Opponent
-            posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' };
+            posStyle = { top: s ? '0.5rem' : '5rem', left: '50%', transform: 'translateX(-50%)' };
             baseRotation = 180;
           } else if (totalOpps === 2) {
-            // 3 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
-            if (index === 1) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 0) { posStyle = { top: '50%', left: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 1) { posStyle = { top: '50%', right: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 3) {
-            // 4 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
-            if (index === 1) { posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
-            if (index === 2) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 0) { posStyle = { top: '50%', left: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 1) { posStyle = { top: s ? '0.3rem' : '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
+            if (index === 2) { posStyle = { top: '50%', right: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 4) {
-            // 5 Players total
-            if (index === 0) { posStyle = { top: '50%', left: '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
-            if (index === 1) { posStyle = { top: '2rem', left: '15rem' }; baseRotation = 135; }
-            if (index === 2) { posStyle = { top: '2rem', right: '15rem' }; baseRotation = -135; }
-            if (index === 3) { posStyle = { top: '50%', right: '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
+            if (index === 0) { posStyle = { top: '50%', left: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = 90; }
+            if (index === 1) { posStyle = { top: s ? '0.3rem' : '2rem', left: s ? '25%' : '15rem' }; baseRotation = 135; }
+            if (index === 2) { posStyle = { top: s ? '0.3rem' : '2rem', right: s ? '25%' : '15rem' }; baseRotation = -135; }
+            if (index === 3) { posStyle = { top: '50%', right: s ? '0.5rem' : '5rem', transform: 'translateY(-50%)' }; baseRotation = -90; }
           } else if (totalOpps === 5) {
-            // 6 Players total
-            if (index === 0) { posStyle = { bottom: '15rem', left: '5rem' }; baseRotation = 45; }
-            if (index === 1) { posStyle = { top: '5rem', left: '15rem' }; baseRotation = 135; }
-            if (index === 2) { posStyle = { top: '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
-            if (index === 3) { posStyle = { top: '5rem', right: '15rem' }; baseRotation = -135; }
-            if (index === 4) { posStyle = { bottom: '15rem', right: '5rem' }; baseRotation = -45; }
+            if (index === 0) { posStyle = { bottom: s ? '8rem' : '15rem', left: s ? '0.5rem' : '5rem' }; baseRotation = 45; }
+            if (index === 1) { posStyle = { top: s ? '0.3rem' : '5rem', left: s ? '15%' : '15rem' }; baseRotation = 135; }
+            if (index === 2) { posStyle = { top: s ? '0.3rem' : '5rem', left: '50%', transform: 'translateX(-50%)' }; baseRotation = 180; }
+            if (index === 3) { posStyle = { top: s ? '0.3rem' : '5rem', right: s ? '15%' : '15rem' }; baseRotation = -135; }
+            if (index === 4) { posStyle = { bottom: s ? '8rem' : '15rem', right: s ? '0.5rem' : '5rem' }; baseRotation = -45; }
           }
 
           // Fan out opponent's cards horizontally
@@ -410,11 +415,11 @@ const GamePage: React.FC = () => {
             <div key={player.socketId} style={{ position: 'absolute', ...posStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: player.isConnected ? 1 : 0.5, zIndex: 5 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '1rem', zIndex: 10 }}>
                 {/* Avatar */}
-                <div style={{ width: '90px', height: '90px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', border: isTurn ? '3px solid #22c55e' : '3px solid #3b82f6', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', marginBottom: '-10px', zIndex: 11 }}>
+                <div style={{ width: isMobile ? '48px' : '90px', height: isMobile ? '48px' : '90px', borderRadius: '12px', background: '#e2e8f0', overflow: 'hidden', border: isTurn ? '3px solid #22c55e' : '3px solid #3b82f6', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', marginBottom: '-10px', zIndex: 11 }}>
                   <img src={`/assets/${player.profilePic || 'profile1.png'}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 {/* Name Pill */}
-                <div style={{ background: isTurn ? '#22c55e' : '#3b82f6', padding: '0.2rem 1rem', borderRadius: '1rem', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', border: '2px solid #1e293b', zIndex: 12 }}>
+                <div style={{ background: isTurn ? '#22c55e' : '#3b82f6', padding: isMobile ? '0.1rem 0.5rem' : '0.2rem 1rem', borderRadius: '1rem', color: 'white', fontWeight: 'bold', fontSize: isMobile ? '0.75rem' : '1.2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', border: '2px solid #1e293b', zIndex: 12 }}>
                   {player.nickname}
                 </div>
               </div>
@@ -473,11 +478,11 @@ const GamePage: React.FC = () => {
       </div>
 
       {isMyTurn() && gameState.room.pendingDraws > 0 && (
-        <div style={{ position: 'absolute', top: '65%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '1rem', zIndex: 100 }}>
+        <div style={{ position: 'absolute', top: isMobile ? '58%' : '65%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '0.5rem', zIndex: 100, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button 
             onClick={() => socket?.emit('acceptDraws', { roomCode })}
             className="btn-primary"
-            style={{ background: '#ef4444', fontSize: '1.2rem', padding: '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
+            style={{ background: '#ef4444', fontSize: isMobile ? '0.85rem' : '1.2rem', padding: isMobile ? '0.6rem 1rem' : '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
           >
             Take {gameState.room.pendingDraws} Cards
           </button>
@@ -486,7 +491,7 @@ const GamePage: React.FC = () => {
             <button 
               onClick={() => socket?.emit('challengeDraws', { roomCode })}
               className="btn-primary"
-              style={{ background: '#eab308', color: 'black', fontSize: '1.2rem', padding: '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
+              style={{ background: '#eab308', color: 'black', fontSize: isMobile ? '0.85rem' : '1.2rem', padding: isMobile ? '0.6rem 1rem' : '1rem 2rem', boxShadow: '0 4px 6px rgba(0,0,0,0.5)' }}
             >
               Challenge
             </button>
@@ -495,31 +500,30 @@ const GamePage: React.FC = () => {
       )}
 
       {/* Bottom Right - Last Card Button */}
-      <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 20 }}>
+      <div style={{ position: 'absolute', bottom: isMobile ? '0.5rem' : '2rem', right: isMobile ? '0.5rem' : '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 20 }}>
         <button 
           onClick={handleLastCardClick}
-          style={{ width: '120px', height: '120px', borderRadius: '10%', background: 'linear-gradient(to bottom, #ff0000, #b91c1c)', color: 'white', fontWeight: 900, textShadow: '2px 2px 0 #1e293b', fontSize: '1.5rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.5)', animation: (iHaveOneCard && !myPlayer?.hasCalledLastCard) ? 'pulse 1s infinite' : 'none' }}
+          style={{ width: isMobile ? '72px' : '120px', height: isMobile ? '72px' : '120px', borderRadius: '10%', background: 'linear-gradient(to bottom, #ff0000, #b91c1c)', color: 'white', fontWeight: 900, textShadow: '2px 2px 0 #1e293b', fontSize: isMobile ? '0.95rem' : '1.5rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.5)', animation: (iHaveOneCard && !myPlayer?.hasCalledLastCard) ? 'pulse 1s infinite' : 'none' }}
         >
           LAST<br/>CARD!
         </button>
       </div>
 
       {/* Bottom - Player Hand (Fan Shape) & My Avatar */}
-      <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
+      <div style={{ position: 'absolute', bottom: isMobile ? '0.5rem' : '2rem', left: isMobile ? '0.5rem' : '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10 }}>
         {/* My Avatar */}
-        <div style={{ width: '70px', height: '70px', borderRadius: '16px', background: '#e2e8f0', overflow: 'hidden', border: isMyTurn() ? '4px solid #22c55e' : '4px solid #3b82f6', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', marginBottom: '-15px', zIndex: 11 }}>
+        <div style={{ width: isMobile ? '44px' : '70px', height: isMobile ? '44px' : '70px', borderRadius: '16px', background: '#e2e8f0', overflow: 'hidden', border: isMyTurn() ? '4px solid #22c55e' : '4px solid #3b82f6', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', marginBottom: isMobile ? '-10px' : '-15px', zIndex: 11 }}>
           <img src={`/assets/${myPlayer?.profilePic || 'profile1.png'}`} alt="My Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         {/* My Name Pill */}
-        <div style={{ background: isMyTurn() ? '#22c55e' : '#3b82f6', padding: '0.4rem 1.5rem', borderRadius: '1.5rem', color: 'white', fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', border: '3px solid #1e293b', zIndex: 12 }}>
+        <div style={{ background: isMyTurn() ? '#22c55e' : '#3b82f6', padding: isMobile ? '0.2rem 0.7rem' : '0.4rem 1.5rem', borderRadius: '1.5rem', color: 'white', fontWeight: 'bold', fontSize: isMobile ? '0.8rem' : '1.2rem', boxShadow: '0 4px 10px rgba(0,0,0,0.5)', border: '3px solid #1e293b', zIndex: 12 }}>
           {myPlayer?.nickname || 'Me'}
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: '75px', left: '50%', transform: 'translateX(-50%)', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: '250px', width: '100%', zIndex: 10 }}>
+      <div style={{ position: 'absolute', bottom: isMobile ? '55px' : '75px', left: '50%', transform: 'translateX(-50%)', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', height: isMobile ? '160px' : '250px', width: '100%', zIndex: 10 }}>
         {gameState.hand.map((card, index) => {
           const angle = startAngle + (index * cardSpacingAngle);
-          // Calculate Y offset based on a circular path so cards array forms an arc
           const arcXSpacing = horizontalSpacing * 0.75;
           const yOffset = fanRadius - Math.sqrt(Math.pow(fanRadius, 2) - Math.pow((index - handSize / 2) * arcXSpacing, 2));
           
@@ -527,7 +531,9 @@ const GamePage: React.FC = () => {
           const isHovered = hoveredCardId === card.id;
           const isPopped = isSelected || isHovered;
           
-          const baseTransform = `translateX(${(index - handSize / 2) * horizontalSpacing}px) translateY(${isNaN(yOffset) ? 0 : Math.min(yOffset, 100)}px) rotate(${angle}deg)`;
+          const cardW = isMobile ? 70 : 100;
+          const cardH = isMobile ? 105 : 150;
+          const baseTransform = `translateX(${(index - handSize / 2) * horizontalSpacing}px) translateY(${isNaN(yOffset) ? 0 : Math.min(yOffset, isMobile ? 60 : 100)}px) rotate(${angle}deg)`;
           
           return (
             <div 
@@ -537,8 +543,8 @@ const GamePage: React.FC = () => {
                 transformOrigin: 'bottom center',
                 transform: baseTransform,
                 zIndex: isPopped ? 100 : index,
-                width: '100px',
-                height: '150px'
+                width: `${cardW}px`,
+                height: `${cardH}px`
               }} 
               onMouseEnter={() => {
                 if (!('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
@@ -552,13 +558,12 @@ const GamePage: React.FC = () => {
               }}
               onClick={() => handleCardClick(card)}
             >
-              {/* Inner visual container that physically pops out */}
               <div style={{
                 width: '100%', height: '100%',
                 transformOrigin: 'bottom center',
-                transform: isPopped ? `translateY(-50px) rotate(${-angle}deg) scale(1.1)` : 'none',
+                transform: isPopped ? `translateY(-${cardPopOut}px) rotate(${-angle}deg) scale(${cardScale})` : 'none',
                 transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                pointerEvents: 'none' /* Prevents the expanded graphic from blocking neighboring hit areas */
+                pointerEvents: 'none'
               }}>
                 <div style={{ pointerEvents: 'auto', width: '100%', height: '100%' }}>
                   <Card 
