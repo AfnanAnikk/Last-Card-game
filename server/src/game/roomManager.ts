@@ -47,6 +47,7 @@ export class RoomManager {
       pendingEffect: null,
       settings: settings || { playWithStack: true, playWithPlus6Plus10: false, playWith07Swap: false },
       pendingDraws: 0,
+      pendingChallenge: null,
       pendingSwap7: null
     };
 

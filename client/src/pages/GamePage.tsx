@@ -456,12 +456,12 @@ const GamePage: React.FC = () => {
         onDrop={handleDrop}
       >
         {gameState.room.previousDiscardPileTop && (
-          <div style={{ position: 'absolute', pointerEvents: 'none', opacity: 0.8, transform: 'scale(0.9) rotate(-15deg) translate(-10px, -10px)' }}>
+          <div style={{ position: 'absolute', pointerEvents: 'none', opacity: 0.85, transform: 'scale(0.9) rotate(-15deg) translate(-20px, 8px)', zIndex: 1 }}>
             <Card card={gameState.room.previousDiscardPileTop} />
           </div>
         )}
         {gameState.room.discardPileTop ? (
-          <div style={{ position: 'relative', pointerEvents: 'none' }}>
+          <div style={{ position: 'relative', pointerEvents: 'none', zIndex: 2 }}>
             <Card card={gameState.room.discardPileTop} />
             {gameState.room.currentColor && gameState.room.discardPileTop.color === 'black' && (
               <div style={{ position: 'absolute', top: -15, right: -15, width: 30, height: 30, borderRadius: '50%', background: `var(--${gameState.room.currentColor})`, border: '3px solid white', boxShadow: '0 0 10px rgba(0,0,0,0.5)' }} />
