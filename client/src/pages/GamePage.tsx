@@ -328,7 +328,7 @@ const GamePage: React.FC = () => {
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       
       {/* Top Left - Draw Pile */}
-      <div style={{ position: 'absolute', top: isMobile ? '50%' : '15rem', left: isMobile ? 'calc(50% - 90px)' : '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: isMobile ? 'translateY(-50%) rotate(45deg)' : 'rotate(45deg)' }}>
+      <div style={{ position: 'absolute', top: isMobile ? '50%' : '15rem', left: isMobile ? 'calc(50% - 135px)' : '30rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10, transform: isMobile ? 'translateY(-50%) rotate(45deg)' : 'rotate(45deg)' }}>
         <div onClick={handleDrawCard} style={{ cursor: isMyTurn() ? 'pointer' : 'default' }}>
           <div style={{ animation: isMyTurn() ? 'drawPulse 1s infinite ease-in-out' : 'none', transformOrigin: 'center center', display: 'inline-block' }}>
             <div style={{ transform: isMobile ? 'scale(0.35)' : 'scale(0.5)', transformOrigin: 'top left', display: 'inline-block', border: isMyTurn() ? '3px solid orange' : 'none', borderRadius: '0.7rem', boxShadow: isMyTurn() ? '0 0 12px orange, 0 0 25px rgba(255, 165, 0, 0.8)' : 'none' }}>
@@ -428,11 +428,12 @@ const GamePage: React.FC = () => {
                 <div style={{ position: 'absolute', transform: `rotate(${baseRotation}deg)`, display: 'flex', justifyContent: 'center', top: '10px' }}>
                   <div style={{ position: 'relative', width: `${20 + (renderedCardsCount * 10)}px`, height: '50px', display: 'flex', justifyContent: 'center' }}>
                     {Array.from({ length: renderedCardsCount }).map((_, i) => {
+                      const oppSpacing = isMobile ? 6 : 10;
                       const angle = oppStartAngle + (i * oppCardSpacing);
-                      const yOff = oppFanRadius - Math.sqrt(Math.pow(oppFanRadius, 2) - Math.pow((i - renderedCardsCount / 2) * 10, 2));
+                      const yOff = oppFanRadius - Math.sqrt(Math.pow(oppFanRadius, 2) - Math.pow((i - renderedCardsCount / 2) * oppSpacing, 2));
                       return (
-                        <div key={i} style={{ position: 'absolute', transformOrigin: 'bottom center', transform: `translateX(${(i - renderedCardsCount / 2) * 10}px) translateY(${isNaN(yOff) ? 0 : Math.min(yOff, 20)}px) rotate(${angle}deg)` }}>
-                          <div style={{ transform: 'scale(0.6)', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden' }}>
+                        <div key={i} style={{ position: 'absolute', transformOrigin: 'bottom center', transform: `translateX(${(i - renderedCardsCount / 2) * oppSpacing}px) translateY(${isNaN(yOff) ? 0 : Math.min(yOff, 20)}px) rotate(${angle}deg)` }}>
+                          <div style={{ transform: isMobile ? 'scale(0.35)' : 'scale(0.6)', boxShadow: '0 2px 5px rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden' }}>
                             <Card card={{ id: 'back', color: 'black', type: 'number', value: '' }} isFaceDown />
                           </div>
                         </div>
@@ -451,7 +452,8 @@ const GamePage: React.FC = () => {
       <div 
         style={{ 
           position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: '150px', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: isMobile ? '120px' : '150px', height: isMobile ? '180px' : '220px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           border: isHoveringDropZone ? '4px dashed #a855f7' : '4px dashed transparent',
           borderRadius: '1rem', transition: 'border 0.2s', zIndex: 5
         }}
